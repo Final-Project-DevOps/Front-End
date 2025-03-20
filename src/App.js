@@ -9,6 +9,9 @@ function App() {
       <Navbar />
       <header className="App-header">
         <p>
+          React Firebase DevOps Assignment
+        </p>
+      </header>
           React Firebase DevOps Assignment with Footer
         </p>
       </header>
