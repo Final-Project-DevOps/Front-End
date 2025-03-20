@@ -27,6 +27,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          firebaseServiceAccount: '1//0gqbXKAXbMdlxCgYIARAAGBASNwF-L9IrjY9JwfUb2i_IxxXT8drkivxh0Z0-BlBkrHZJ-fh-K8L603g1kcSMdZdDY1L134XIEhA'
           channelId: live
           projectId: fir-react-devops
