@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -11,6 +12,10 @@ function App() {
           React Firebase DevOps Assignment
         </p>
       </header>
+          React Firebase DevOps Assignment with Footer
+        </p>
+      </header>
+      <Footer />
     </div>
   );
 }
