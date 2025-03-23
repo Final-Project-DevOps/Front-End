@@ -1,14 +1,13 @@
-import React from 'react';
-import KnowHub from './components/KnowHub';
-import Footer from './components/Footer';
-import './App.css';
+import "./App.css";
+import KnowHub from "./components/KnowHub";
+import Footer from "./components/Footer";
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex-grow">
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+      <main className="flex-grow flex justify-center items-center">
         <KnowHub />
-      </div>
+      </main>
       <Footer />
     </div>
   );
