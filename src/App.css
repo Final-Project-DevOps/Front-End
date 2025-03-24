@@ -5,7 +5,7 @@
 /* Tambahkan custom class biar Tailwind ngerti bg-background & text-foreground */
 @layer utilities {
   .border-border {
-    border-color: hsl(0, 0%, 80%);
+    border-color: hsl(0, 0%, 100%);
   }
   .bg-background {
     background-color: #ffffff;
