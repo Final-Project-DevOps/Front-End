@@ -10,7 +10,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-frontend
-  IMAGE_NAME_LOWER: ${{ github.repository toLowerCase() }}-frontend
+  IMAGE_NAME_LOWER: ${{ github.repository.lowercase }}-frontend
 
 jobs:
   build:
