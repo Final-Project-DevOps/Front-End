@@ -1,9 +1,11 @@
 name: "Build and Publish Frontend Image to GHCR"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
+    
 
 env:
   REGISTRY: ghcr.io
