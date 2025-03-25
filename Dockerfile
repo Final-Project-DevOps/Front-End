@@ -42,7 +42,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM nginx:1.25.5-slim
+FROM nginx:latest
 
 
 # Copy build result ke nginx
