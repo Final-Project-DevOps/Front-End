@@ -46,19 +46,19 @@ export const editPost = async (id, postData) => {
     }
 };
 
-export const fetchReplies = async (postId) => {
-    const response = await fetch(`https://your-api.com/posts/${postId}/replies`);
-    if (!response.ok) throw new Error('Gagal mengambil replies');
-    return response.json();
-  };
+// export const fetchReplies = async (postId) => {
+//     const response = await fetch(`https://your-api.com/posts/${postId}/replies`);
+//     if (!response.ok) throw new Error('Gagal mengambil replies');
+//     return response.json();
+//   };
   
-  export const addReply = async (postId, replyData) => {
-    const response = await fetch(`https://your-api.com/posts/${postId}/replies`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(replyData),
-    });
-    if (!response.ok) throw new Error('Gagal menambahkan reply');
-    return response.json();
-  };
+//   export const addReply = async (postId, replyData) => {
+//     const response = await fetch(`https://your-api.com/posts/${postId}/replies`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(replyData),
+//     });
+//     if (!response.ok) throw new Error('Gagal menambahkan reply');
+//     return response.json();
+//   };
   
