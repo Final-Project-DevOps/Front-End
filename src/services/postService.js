@@ -34,3 +34,15 @@ export const deletePost = async (id) => {
         return false;
     }
 };
+
+// Edit an existing post
+export const editPost = async (id, postData) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/posts/${id}`, postData);
+        return response.data.data; // Assuming the response contains a 'data' field
+    } catch (error) {
+        console.error('Error editing post:', error);
+        return null;
+    }
+};
+

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, User } from 'lucide-react';
-import { fetchPosts, createPost, deletePost } from '../services/postService';
+import { Trash2, Plus, User, Edit } from 'lucide-react'; // Import Edit icon
+import { fetchPosts, createPost, deletePost, editPost } from '../services/postService';
+import { Link } from 'react-router-dom';
 
 export default function KnowHub() {
   const [showForm, setShowForm] = useState(false);
@@ -8,6 +9,7 @@ export default function KnowHub() {
     title: '',
     content: '',
   });
+  const [editingPostId, setEditingPostId] = useState(null); // Track the post being edited
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
@@ -39,17 +41,24 @@ export default function KnowHub() {
     }
 
     try {
-      await createPost(formData);
+      if (editingPostId) {
+        await editPost(editingPostId, formData); // Edit post if we are updating
+      } else {
+        await createPost(formData); // Create new post if no editing
+      }
       setFormData({ title: '', content: '' });
+      setEditingPostId(null); // Reset editing state
       setShowForm(false);
       fetchPostsData();
     } catch (error) {
-      console.error("Gagal menambahkan pertanyaan:", error);
+      console.error("Gagal menyimpan pertanyaan:", error);
     }
   };
 
   const toggleForm = () => {
     setShowForm(!showForm);
+    setFormData({ title: '', content: '' });
+    setEditingPostId(null);
   };
 
   const handleDelete = async (id) => {
@@ -63,13 +72,33 @@ export default function KnowHub() {
     }
   };
 
+  const handleEdit = (post) => {
+    setFormData({
+      title: post.title,
+      content: post.content,
+    });
+    setEditingPostId(post.id); // Set the post ID being edited
+    setShowForm(true); // Show form to edit
+  };
+
+  // Handle social media click
   const handleSocialClick = (platform) => {
-    // Placeholder for social media link handling
-    console.log(`Navigating to ${platform}`);
-    // In a real app, you might want to:
-    // - Open the specific social media page
-    // - Track analytics
-    // - Perform other actions
+    switch (platform) {
+      case 'Instagram':
+        window.open('https://www.instagram.com/yourprofile', '_blank');
+        break;
+      case 'Facebook':
+        window.open('https://www.facebook.com/yourprofile', '_blank');
+        break;
+      case 'Twitter':
+        window.open('https://twitter.com/yourprofile', '_blank');
+        break;
+      case 'LinkedIn':
+        window.open('https://www.linkedin.com/in/yourprofile', '_blank');
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -85,9 +114,9 @@ export default function KnowHub() {
             >
               <Plus size={20} className="mr-2" /> Tambah Pertanyaan
             </button>
-            <button className="bg-transparent text-white p-2 rounded-full">
+            <Link to="/login" className="bg-transparent text-white p-2 rounded-full">
               <User size={24} />
-            </button>
+            </Link>
           </div>
         </div>
       </header>
@@ -104,11 +133,13 @@ export default function KnowHub() {
           </button>
         )}
 
-        {/* Form for adding posts */}
+        {/* Form for adding or editing posts */}
         {showForm && (
           <div className="w-full bg-white border rounded-lg p-6 mb-6 shadow-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">Buat Pertanyaan Baru</h2>
+              <h2 className="text-xl font-semibold text-gray-800">
+                {editingPostId ? 'Edit Pertanyaan' : 'Buat Pertanyaan Baru'}
+              </h2>
               <button 
                 onClick={toggleForm}
                 className="text-gray-600 hover:text-gray-800 transition-colors"
@@ -146,7 +177,7 @@ export default function KnowHub() {
                   type="submit"
                   className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition-colors"
                 >
-                  Publikasikan
+                  {editingPostId ? 'Perbarui' : 'Publikasikan'}
                 </button>
               </div>
             </form>
@@ -163,6 +194,12 @@ export default function KnowHub() {
                   <p className="text-gray-600 text-sm">{post.content}</p>
                 )}
               </div>
+              <button 
+                onClick={() => handleEdit(post)} 
+                className="text-blue-500 hover:text-blue-700 ml-4"
+              >
+                <Edit size={20} />
+              </button>
               <button 
                 onClick={() => handleDelete(post.id)} 
                 className="text-red-500 hover:text-red-700 ml-4"
