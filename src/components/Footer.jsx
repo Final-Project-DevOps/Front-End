@@ -41,13 +41,6 @@ export default function Footer() {
           <i className="fab fa-linkedin"></i> LinkedIn
         </a>
       </div>
-      
-      <div className="text-sm">
-        <a href="/about" className="hover:text-emerald-300 mx-2">Tentang Kami</a>
-        <a href="/contact" className="hover:text-emerald-300 mx-2">Kontak</a>
-        <a href="/privacy-policy" className="hover:text-emerald-300 mx-2">Kebijakan Privasi</a>
-        <a href="/terms-of-service" className="hover:text-emerald-300 mx-2">Syarat & Ketentuan</a>
-      </div>
     </footer>
   );
 }

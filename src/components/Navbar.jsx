@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, User, Edit } from 'lucide-react'; // Import Edit icon
+import { Trash2, Plus, User, Edit } from 'lucide-react';
 import { fetchPosts, createPost, deletePost, editPost } from '../services/postService';
 import { Link } from 'react-router-dom';
 
-export default function KnowHub() {
+export default function Navbar() {
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-  });
-  const [editingPostId, setEditingPostId] = useState(null); // Track the post being edited
+  const [formData, setFormData] = useState({ title: '', content: '' });
+  const [editingPostId, setEditingPostId] = useState(null);
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
@@ -26,11 +23,7 @@ export default function KnowHub() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -42,23 +35,17 @@ export default function KnowHub() {
 
     try {
       if (editingPostId) {
-        await editPost(editingPostId, formData); // Edit post if we are updating
+        await editPost(editingPostId, formData);
       } else {
-        await createPost(formData); // Create new post if no editing
+        await createPost(formData);
       }
       setFormData({ title: '', content: '' });
-      setEditingPostId(null); // Reset editing state
+      setEditingPostId(null);
       setShowForm(false);
       fetchPostsData();
     } catch (error) {
       console.error("Gagal menyimpan pertanyaan:", error);
     }
-  };
-
-  const toggleForm = () => {
-    setShowForm(!showForm);
-    setFormData({ title: '', content: '' });
-    setEditingPostId(null);
   };
 
   const handleDelete = async (id) => {
@@ -73,32 +60,9 @@ export default function KnowHub() {
   };
 
   const handleEdit = (post) => {
-    setFormData({
-      title: post.title,
-      content: post.content,
-    });
-    setEditingPostId(post.id); // Set the post ID being edited
-    setShowForm(true); // Show form to edit
-  };
-
-  // Handle social media click
-  const handleSocialClick = (platform) => {
-    switch (platform) {
-      case 'Instagram':
-        window.open('https://www.instagram.com/yourprofile', '_blank');
-        break;
-      case 'Facebook':
-        window.open('https://www.facebook.com/yourprofile', '_blank');
-        break;
-      case 'Twitter':
-        window.open('https://twitter.com/yourprofile', '_blank');
-        break;
-      case 'LinkedIn':
-        window.open('https://www.linkedin.com/in/yourprofile', '_blank');
-        break;
-      default:
-        break;
-    }
+    setFormData({ title: post.title, content: post.content });
+    setEditingPostId(post.id);
+    setShowForm(true);
   };
 
   return (
@@ -107,33 +71,33 @@ export default function KnowHub() {
       <header className="bg-green-500 text-white py-4 px-4 w-full sticky top-0 z-10 shadow-md">
         <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-4">
           <h1 className="text-2xl font-bold">KnowHub</h1>
+          <nav className="flex items-center space-x-4">
+            <Link to="/about" className="hover:text-emerald-300">Tentang Kami</Link>
+            <Link to="/contact" className="hover:text-emerald-300">Kontak</Link>
+            <Link to="/privacy-policy" className="hover:text-emerald-300">Kebijakan Privasi</Link>
+            <Link to="/terms-of-service" className="hover:text-emerald-300">Syarat & Ketentuan</Link>
+          </nav>
           <div className="flex items-center space-x-4">
             <button 
-              onClick={toggleForm}
+              onClick={() => setShowForm(!showForm)}
               className="bg-white text-green-500 rounded-full px-4 py-2 flex items-center font-medium"
             >
               <Plus size={20} className="mr-2" /> Tambah Pertanyaan
             </button>
-            <Link to="/login" className="bg-transparent text-white p-2 rounded-full">
+            {/* <Link to="/login" className="bg-transparent text-white p-2 rounded-full">
               <User size={24} />
+            </Link> */}
+              <Link to="/register" className="bg-green text-white-500 rounded-full px-4 py-2 font-medium">
+                Daftar
             </Link>
+
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-grow w-full max-w-6xl mx-auto px-4 py-6">
-        {/* Full-width button or form */}
-        {!showForm && (
-          <button 
-            onClick={toggleForm}
-            className="w-full bg-green-500 text-white px-6 py-3 rounded-lg mb-6 hover:bg-green-600 transition-colors text-lg font-semibold"
-          >
-            Buat Pertanyaan Baru
-          </button>
-        )}
-
-        {/* Form for adding or editing posts */}
+        {/* Form untuk tambah/edit pertanyaan */}
         {showForm && (
           <div className="w-full bg-white border rounded-lg p-6 mb-6 shadow-md">
             <div className="flex justify-between items-center mb-4">
@@ -141,7 +105,7 @@ export default function KnowHub() {
                 {editingPostId ? 'Edit Pertanyaan' : 'Buat Pertanyaan Baru'}
               </h2>
               <button 
-                onClick={toggleForm}
+                onClick={() => setShowForm(false)}
                 className="text-gray-600 hover:text-gray-800 transition-colors"
               >
                 Batal
@@ -184,7 +148,7 @@ export default function KnowHub() {
           </div>
         )}
 
-        {/* Posts List */}
+        {/* List post */}
         <div className="space-y-4">
           {posts.map(post => (
             <div key={post.id} className="w-full bg-white border rounded-lg p-4 shadow-sm flex items-start">
@@ -210,39 +174,6 @@ export default function KnowHub() {
           ))}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="w-full bg-green-500 text-white py-4 px-4 text-center">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-sm">© 2025 KnowHub. Semua Hak & Pengetahuan Dilindungi.</p>
-          <div className="flex justify-center space-x-4 mt-2">
-            <button 
-              onClick={() => handleSocialClick('Instagram')}
-              className="hover:underline text-white bg-transparent"
-            >
-              Instagram
-            </button>
-            <button 
-              onClick={() => handleSocialClick('Facebook')}
-              className="hover:underline text-white bg-transparent"
-            >
-              Facebook
-            </button>
-            <button 
-              onClick={() => handleSocialClick('Twitter')}
-              className="hover:underline text-white bg-transparent"
-            >
-              Twitter
-            </button>
-            <button 
-              onClick={() => handleSocialClick('LinkedIn')}
-              className="hover:underline text-white bg-transparent"
-            >
-              LinkedIn
-            </button>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
