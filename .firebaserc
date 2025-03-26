@@ -2,6 +2,21 @@
   "projects": {
     "default": "fir-react-devops"
   },
-  "targets": {},
+  "targets": {
+    "knowhub-devops": {
+      "hosting": {
+        "fe-2": [
+          "fir-react-devops"
+        ]
+      }
+    },
+    "fir-react-devops": {
+      "hosting": {
+        "fe-2": [
+          "fir-react-devops"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

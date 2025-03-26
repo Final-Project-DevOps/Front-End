@@ -1,35 +1,27 @@
-import React, { useState } from 'react';
-import { Edit, Trash2, MessageSquare, Heart, Plus, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Trash2, Plus, User } from 'lucide-react';
+import { fetchPosts, createPost, deletePost } from '../services/postService';
 
 export default function KnowHub() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    question: '',
+    title: '',
     content: '',
-    tags: ''
   });
-  const [posts, setPosts] = useState([
-    {
-      id: '1',
-      question: 'Apa framework JavaScript terbaik untuk pengembangan web modern?',
-      content: 'Saya sedang mempertimbangkan beberapa opsi untuk proyek baru saya dan ingin tahu pendapat komunitas tentang React, Vue, dan Angular.',
-      author: 'Budi Santoso',
-      timestamp: '1 jam yang lalu',
-      likes: 24,
-      answers: 8,
-      tags: ['JavaScript', 'Web Development', 'Framework']
-    },
-    {
-      id: '2',
-      question: 'Bagaimana cara meningkatkan performa website?',
-      content: 'Website saya lambat saat loading. Apa saja langkah-langkah untuk mengoptimalkan performa website?',
-      author: 'Siti Aminah',
-      timestamp: '3 jam yang lalu',
-      likes: 15,
-      answers: 5,
-      tags: ['Performance', 'Web Development', 'Optimization']
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    fetchPostsData();
+  }, []);
+
+  const fetchPostsData = async () => {
+    try {
+      const data = await fetchPosts();
+      setPosts(data);
+    } catch (error) {
+      console.error("Gagal mengambil data:", error);
     }
-  ]);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -39,129 +31,120 @@ export default function KnowHub() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.question.trim()) {
+    if (!formData.title.trim()) {
       alert('Pertanyaan tidak boleh kosong!');
       return;
     }
 
-    const newPost = {
-      id: Date.now().toString(),
-      question: formData.question,
-      content: formData.content,
-      author: 'Anonim', // Bisa ganti dengan nama user login
-      timestamp: 'Baru saja',
-      likes: 0,
-      answers: 0,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
-    };
-
-    setPosts([newPost, ...posts]);
-    setFormData({ question: '', content: '', tags: '' });
-    setShowForm(false);
+    try {
+      await createPost(formData);
+      setFormData({ title: '', content: '' });
+      setShowForm(false);
+      fetchPostsData();
+    } catch (error) {
+      console.error("Gagal menambahkan pertanyaan:", error);
+    }
   };
 
   const toggleForm = () => {
     setShowForm(!showForm);
   };
 
-  const handleLike = (id) => {
-    setPosts(posts.map(post =>
-      post.id === id ? { ...post, likes: post.likes + 1 } : post
-    ));
-  };
-
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Hapus pertanyaan ini?')) {
-      setPosts(posts.filter(post => post.id !== id));
+      try {
+        await deletePost(id);
+        fetchPostsData();
+      } catch (error) {
+        console.error("Gagal menghapus pertanyaan:", error);
+      }
     }
   };
 
+  const handleSocialClick = (platform) => {
+    // Placeholder for social media link handling
+    console.log(`Navigating to ${platform}`);
+    // In a real app, you might want to:
+    // - Open the specific social media page
+    // - Track analytics
+    // - Perform other actions
+  };
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="w-full min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <header className="bg-green-500 text-white py-3 px-4 w-full fixed top-0 left-0 z-10 shadow-lg">
-        <div className="flex justify-between items-center max-w-screen-xl mx-auto">
-          <h1 className="text-xl md:text-2xl font-bold">KnowHub</h1>
-          <div className="flex items-center space-x-2">
+      <header className="bg-green-500 text-white py-4 px-4 w-full sticky top-0 z-10 shadow-md">
+        <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-4">
+          <h1 className="text-2xl font-bold">KnowHub</h1>
+          <div className="flex items-center space-x-4">
             <button 
               onClick={toggleForm}
-              className="bg-white text-green-500 rounded-full px-2 py-1 md:px-3 md:py-1 flex items-center font-medium text-xs md:text-sm"
+              className="bg-white text-green-500 rounded-full px-4 py-2 flex items-center font-medium"
             >
-              <Plus size={16} className="mr-1" /> <span className="hidden sm:inline">Tambah Pertanyaan</span><span className="sm:hidden">Tambah</span>
+              <Plus size={20} className="mr-2" /> Tambah Pertanyaan
             </button>
-            <button className="bg-transparent text-white p-1 rounded-full">
-              <User size={20} />
+            <button className="bg-transparent text-white p-2 rounded-full">
+              <User size={24} />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-4 max-w-4xl pt-16"> {/* Extra padding-top to avoid overlap with fixed navbar */}
-        {/* Tombol buat pertanyaan */}
+      {/* Main Content */}
+      <main className="flex-grow w-full max-w-6xl mx-auto px-4 py-6">
+        {/* Full-width button or form */}
         {!showForm && (
           <button 
             onClick={toggleForm}
-            className="bg-green-500 text-white px-4 py-2 rounded-md mb-6 hover:bg-green-600 transition-colors w-full sm:w-auto"
+            className="w-full bg-green-500 text-white px-6 py-3 rounded-lg mb-6 hover:bg-green-600 transition-colors text-lg font-semibold"
           >
             Buat Pertanyaan Baru
           </button>
         )}
 
-        {/* Form buat pertanyaan */}
+        {/* Form for adding posts */}
         {showForm && (
-          <div className="mb-6 border rounded-lg p-4 shadow-sm">
+          <div className="w-full bg-white border rounded-lg p-6 mb-6 shadow-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg md:text-xl font-medium text-gray-800">Buat Pertanyaan Baru</h2>
+              <h2 className="text-xl font-semibold text-gray-800">Buat Pertanyaan Baru</h2>
               <button 
                 onClick={toggleForm}
-                className="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                className="text-gray-600 hover:text-gray-800 transition-colors"
               >
                 Batal
               </button>
             </div>
             
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
                 <label className="block text-gray-700 mb-2 font-medium">Pertanyaan</label>
                 <input
                   type="text"
-                  name="question"
-                  value={formData.question}
+                  name="title"
+                  value={formData.title}
                   onChange={handleInputChange}
-                  placeholder="Masukkan pertanyaan Anda di sini..."
-                  className="w-full px-4 py-2 border border-green-200 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-800"
+                  placeholder="Masukkan pertanyaan Anda..."
+                  className="w-full px-4 py-2 border border-green-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
                 />
               </div>
               
-              <div className="mb-4">
+              <div>
                 <label className="block text-gray-700 mb-2 font-medium">Detail (opsional)</label>
                 <textarea
                   name="content"
                   value={formData.content}
                   onChange={handleInputChange}
                   placeholder="Tambahkan detail untuk pertanyaan Anda..."
-                  className="w-full px-4 py-2 border border-green-200 rounded-md h-24 md:h-32 focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-800"
+                  className="w-full px-4 py-2 border border-green-200 rounded-md h-32 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
                 />
               </div>
               
-              <div className="mb-6">
-                <label className="block text-gray-700 mb-2 font-medium">Tag (pisahkan dengan koma)</label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={formData.tags}
-                  onChange={handleInputChange}
-                  placeholder="contoh: web, javascript, react"
-                  className="w-full px-4 py-2 border border-green-200 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-800"
-                />
-              </div>
-              
-              <div className="flex justify-end">
+              <div className="text-right">
                 <button
                   type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors w-full sm:w-auto"
+                  className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition-colors"
                 >
                   Publikasikan
                 </button>
@@ -170,62 +153,59 @@ export default function KnowHub() {
           </div>
         )}
 
-        {/* Daftar pertanyaan */}
-        <div className="space-y-6">
+        {/* Posts List */}
+        <div className="space-y-4">
           {posts.map(post => (
-            <div key={post.id} className="border rounded-lg p-4 shadow-sm mb-4 last:mb-0">
-              <div className="flex justify-between items-start">
-                <h3 className="text-base md:text-lg font-medium text-green-700 mb-1">{post.question}</h3>
-                <div className="flex space-x-1">
-                  <button 
-                    onClick={() => alert('Fitur edit belum tersedia')} 
-                    className="text-green-500 hover:text-green-700"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(post.id)} 
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+            <div key={post.id} className="w-full bg-white border rounded-lg p-4 shadow-sm flex items-start">
+              <div className="flex-grow">
+                <h3 className="text-lg font-semibold text-green-700 mb-2">{post.title}</h3>
+                {post.content && (
+                  <p className="text-gray-600 text-sm">{post.content}</p>
+                )}
               </div>
-              
-              <div className="text-xs md:text-sm text-gray-500 mb-2">
-                <span className="text-green-600 font-medium">{post.author}</span> • {post.timestamp}
-              </div>
-              
-              <p className="text-sm md:text-base text-gray-700 mb-3">{post.content}</p>
-              
-              <div className="flex flex-wrap gap-2 mb-3">
-                {post.tags.map((tag, index) => (
-                  <span 
-                    key={index} 
-                    className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <button 
-                  onClick={() => handleLike(post.id)}
-                  className="flex items-center text-gray-500 hover:text-green-600 text-xs md:text-sm"
-                >
-                  <Heart size={14} className="mr-1" />
-                  <span>{post.likes}</span>
-                </button>
-                <button className="flex items-center text-gray-500 hover:text-green-600 text-xs md:text-sm">
-                  <MessageSquare size={14} className="mr-1" />
-                  <span>{post.answers} Jawaban</span>
-                </button>
-              </div>
+              <button 
+                onClick={() => handleDelete(post.id)} 
+                className="text-red-500 hover:text-red-700 ml-4"
+              >
+                <Trash2 size={20} />
+              </button>
             </div>
           ))}
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="w-full bg-green-500 text-white py-4 px-4 text-center">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-sm">© 2025 KnowHub. Semua Hak & Pengetahuan Dilindungi.</p>
+          <div className="flex justify-center space-x-4 mt-2">
+            <button 
+              onClick={() => handleSocialClick('Instagram')}
+              className="hover:underline text-white bg-transparent"
+            >
+              Instagram
+            </button>
+            <button 
+              onClick={() => handleSocialClick('Facebook')}
+              className="hover:underline text-white bg-transparent"
+            >
+              Facebook
+            </button>
+            <button 
+              onClick={() => handleSocialClick('Twitter')}
+              className="hover:underline text-white bg-transparent"
+            >
+              Twitter
+            </button>
+            <button 
+              onClick={() => handleSocialClick('LinkedIn')}
+              className="hover:underline text-white bg-transparent"
+            >
+              LinkedIn
+            </button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
