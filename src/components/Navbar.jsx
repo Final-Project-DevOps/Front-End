@@ -3,24 +3,45 @@
 import { useState, useEffect } from "react"
 import { Trash2, Plus, Edit, Search, MessageCircle, Bell, Menu, X } from "lucide-react"
 import { fetchPosts, createPost, deletePost, editPost } from "../services/postService"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 
 export default function Navbar() {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({ title: "", content: "" })
   const [editingPostId, setEditingPostId] = useState(null)
   const [posts, setPosts] = useState([])
+  const [filteredPosts, setFilteredPosts] = useState([])
+  const [searchQuery, setSearchQuery] = useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchPostsData()
   }, [])
 
+  useEffect(() => {
+    // Filter posts whenever searchQuery or posts change
+    if (searchQuery.trim() === "") {
+      setFilteredPosts(posts)
+      setIsSearching(false)
+    } else {
+      const query = searchQuery.toLowerCase()
+      const filtered = posts.filter(
+        (post) =>
+          post.title.toLowerCase().includes(query) || (post.content && post.content.toLowerCase().includes(query)),
+      )
+      setFilteredPosts(filtered)
+      setIsSearching(true)
+    }
+  }, [searchQuery, posts])
+
   const fetchPostsData = async () => {
     try {
       const data = await fetchPosts()
       setPosts(data)
+      setFilteredPosts(data)
     } catch (error) {
       console.error("Gagal mengambil data:", error)
     }
@@ -28,6 +49,28 @@ export default function Navbar() {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value)
+    // Jika tidak di halaman utama, navigasi ke halaman utama
+    if (!isHomePage) {
+      navigate("/")
+    }
+  }
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault()
+    // Jika tidak di halaman utama, navigasi ke halaman utama
+    if (!isHomePage) {
+      navigate("/")
+    }
+    // Search logic is handled in the useEffect
+  }
+
+  const clearSearch = () => {
+    setSearchQuery("")
+    setIsSearching(false)
   }
 
   const handleSubmit = async (e) => {
@@ -73,8 +116,42 @@ export default function Navbar() {
 
   const isHomePage = location.pathname === "/"
 
+  // Fungsi untuk menangani navigasi ke halaman utama dan menampilkan form
+  const handleAddQuestion = () => {
+    if (!isHomePage) {
+      navigate("/")
+      // Gunakan setTimeout untuk memastikan navigasi selesai sebelum menampilkan form
+      setTimeout(() => {
+        setShowForm(true)
+      }, 100)
+    } else {
+      setShowForm(true)
+    }
+    setMobileMenuOpen(false)
+  }
+
+  // Fungsi untuk menangani navigasi ke section tertentu di halaman utama
+  const handleSectionNavigation = (sectionId) => {
+    if (!isHomePage) {
+      navigate("/")
+      // Gunakan setTimeout untuk memastikan navigasi selesai sebelum scroll
+      setTimeout(() => {
+        const element = document.getElementById(sectionId)
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" })
+        }
+      }, 100)
+    } else {
+      const element = document.getElementById(sectionId)
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" })
+      }
+    }
+    setMobileMenuOpen(false)
+  }
+
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex flex-col">
+    <div className="w-full flex flex-col">
       {/* Header */}
       <header className="bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 w-full sticky top-0 z-10 shadow-lg">
         <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-4">
@@ -85,27 +162,44 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#about" className="hover:text-white/80 transition-colors font-medium">
+            <button
+              onClick={() => handleSectionNavigation("about")}
+              className="hover:text-white/80 transition-colors font-medium bg-transparent text-white"
+            >
               Tentang Kami
-            </a>
-            <a href="#contact" className="hover:text-white/80 transition-colors font-medium">
+            </button>
+            <button
+              onClick={() => handleSectionNavigation("contact")}
+              className="hover:text-white/80 transition-colors font-medium bg-transparent text-white"
+            >
               Kontak
-            </a>
+            </button>
 
-            <div className="relative">
+            <form onSubmit={handleSearchSubmit} className="relative">
               <input
                 type="text"
                 placeholder="Cari pertanyaan..."
-                className="bg-white/20 text-white placeholder-white/70 rounded-full px-4 py-1.5 pl-10 focus:outline-none focus:ring-2 focus:ring-white/50 w-64"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="bg-white/20 text-white placeholder-white/70 rounded-full px-4 py-1.5 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-white/50 w-64"
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/70" />
-            </div>
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </form>
           </nav>
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <button
-              onClick={() => setShowForm(!showForm)}
+              onClick={handleAddQuestion}
               className="bg-white text-green-600 rounded-full px-4 py-2 flex items-center font-medium hover:bg-green-50 transition-colors shadow-sm"
             >
               <Plus size={18} className="mr-2" /> Tambah Pertanyaan
@@ -131,28 +225,42 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-green-600 mt-3 p-4 rounded-b-lg shadow-lg">
             <div className="flex flex-col space-y-4">
-              <a href="#about" className="text-white hover:text-green-100 py-2 font-medium">
+              <button
+                onClick={() => handleSectionNavigation("about")}
+                className="text-white hover:text-green-100 py-2 font-medium text-left bg-transparent"
+              >
                 Tentang Kami
-              </a>
-              <a href="#contact" className="text-white hover:text-green-100 py-2 font-medium">
+              </button>
+              <button
+                onClick={() => handleSectionNavigation("contact")}
+                className="text-white hover:text-green-100 py-2 font-medium text-left bg-transparent"
+              >
                 Kontak
-              </a>
+              </button>
 
-              <div className="relative mt-2">
+              <form onSubmit={handleSearchSubmit} className="relative mt-2">
                 <input
                   type="text"
                   placeholder="Cari pertanyaan..."
-                  className="bg-white/20 text-white placeholder-white/70 rounded-full px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-white/50 w-full"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="bg-white/20 text-white placeholder-white/70 rounded-full px-4 py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-white/50 w-full"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/70" />
-              </div>
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </form>
 
               <div className="flex flex-col space-y-3 pt-3">
                 <button
-                  onClick={() => {
-                    setShowForm(!showForm)
-                    setMobileMenuOpen(false)
-                  }}
+                  onClick={handleAddQuestion}
                   className="bg-white text-green-600 rounded-full px-4 py-2 flex items-center justify-center font-medium"
                 >
                   <Plus size={18} className="mr-2" /> Tambah Pertanyaan
@@ -177,7 +285,7 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* Main Content */}
+      {/* Main Content for Home Page */}
       {isHomePage && (
         <main className="flex-grow w-full max-w-6xl mx-auto px-4 py-6 pb-24">
           {/* Form untuk tambah/edit pertanyaan */}
@@ -231,10 +339,20 @@ export default function Navbar() {
             </div>
           )}
 
+          {/* Search Results Header */}
+          {isSearching && (
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">Hasil Pencarian: "{searchQuery}"</h2>
+              <button onClick={clearSearch} className="text-green-600 hover:text-green-700 flex items-center">
+                <X size={16} className="mr-1" /> Hapus Pencarian
+              </button>
+            </div>
+          )}
+
           {/* List post */}
           <div className="space-y-5">
-            {posts.length > 0 ? (
-              posts.map((post) => (
+            {filteredPosts.length > 0 ? (
+              filteredPosts.map((post) => (
                 <div
                   key={post.id}
                   className="w-full bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
@@ -272,15 +390,31 @@ export default function Navbar() {
               ))
             ) : (
               <div className="text-center py-12 bg-white rounded-xl border border-gray-100 shadow-sm">
-                <MessageCircle size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-xl font-medium text-gray-700 mb-2">Belum ada pertanyaan</h3>
-                <p className="text-gray-500 mb-6">Jadilah yang pertama mengajukan pertanyaan!</p>
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="bg-green-500 text-white px-6 py-2.5 rounded-lg hover:bg-green-600 transition-colors font-medium shadow-sm"
-                >
-                  <Plus size={18} className="inline mr-2" /> Tambah Pertanyaan
-                </button>
+                {isSearching ? (
+                  <>
+                    <Search size={48} className="mx-auto text-gray-300 mb-4" />
+                    <h3 className="text-xl font-medium text-gray-700 mb-2">Tidak ada hasil</h3>
+                    <p className="text-gray-500 mb-6">Tidak ditemukan pertanyaan yang sesuai dengan "{searchQuery}"</p>
+                    <button
+                      onClick={clearSearch}
+                      className="bg-green-500 text-white px-6 py-2.5 rounded-lg hover:bg-green-600 transition-colors font-medium shadow-sm"
+                    >
+                      Hapus Pencarian
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle size={48} className="mx-auto text-gray-300 mb-4" />
+                    <h3 className="text-xl font-medium text-gray-700 mb-2">Belum ada pertanyaan</h3>
+                    <p className="text-gray-500 mb-6">Jadilah yang pertama mengajukan pertanyaan!</p>
+                    <button
+                      onClick={() => setShowForm(true)}
+                      className="bg-green-500 text-white px-6 py-2.5 rounded-lg hover:bg-green-600 transition-colors font-medium shadow-sm"
+                    >
+                      <Plus size={18} className="inline mr-2" /> Tambah Pertanyaan
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -366,14 +500,14 @@ export default function Navbar() {
                   <span className="text-green-600 font-bold">SA</span>
                 </div>
                 <p className="font-medium text-gray-800">Syifani Adillah Salsabila</p>
-                <p className="text-gray-500 text-sm mt-1">DevOps Engineer</p>
+                <p className="text-gray-500 text-sm mt-1">Frontend Developer</p>
               </div>
               <div className="bg-gray-50 p-5 rounded-lg text-center hover:shadow-md transition-shadow">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-green-600 font-bold">KA</span>
                 </div>
                 <p className="font-medium text-gray-800">Khaelano Abroor Maulana</p>
-                <p className="text-gray-500 text-sm mt-1">DevOps Engineer</p>
+                <p className="text-gray-500 text-sm mt-1">Backend Developer</p>
               </div>
               <div className="bg-gray-50 p-5 rounded-lg text-center hover:shadow-md transition-shadow">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
